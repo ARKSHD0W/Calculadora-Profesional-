@@ -1,0 +1,217 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Ultra Pro Max</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 1);
+        }
+        .calc-btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .calc-btn:active {
+            transform: scale(0.92);
+        }
+        .premium-text {
+            background: linear-gradient(45deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-element {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4 font-sans">
+
+    <div class="max-w-md w-full glass-effect rounded-[2rem] shadow-2xl overflow-hidden relative border-t-4 border-amber-500">
+        <!-- Header -->
+        <div class="p-6 text-center border-b border-gray-100">
+            <h1 class="text-xl font-bold text-gray-800 tracking-tight">CloudCalc <span class="premium-text italic">Enterprise Edition</span></h1>
+            <p class="text-xs text-gray-400 mt-1 uppercase tracking-widest">Powered by Quantum AI & Blockchain</p>
+        </div>
+
+        <!-- Display -->
+        <div class="p-8 bg-gray-900 text-right">
+            <div id="history" class="text-gray-500 text-sm h-6 mb-1 overflow-hidden"></div>
+            <div id="display" class="text-white text-5xl font-light tracking-tighter truncate">0</div>
+        </div>
+
+        <!-- Buttons Grid -->
+        <div class="grid grid-cols-4 gap-1 p-4 bg-gray-50">
+            <!-- Row 1 -->
+            <button onclick="clearCalc()" class="calc-btn p-6 text-red-500 font-semibold bg-white rounded-xl hover:bg-red-50">C</button>
+            <button onclick="append('(')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">(</button>
+            <button onclick="append(')')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">)</button>
+            <button onclick="append('/')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">÷</button>
+            
+            <!-- Row 2 -->
+            <button onclick="append('7')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">7</button>
+            <button onclick="append('8')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">8</button>
+            <button onclick="append('9')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">9</button>
+            <button onclick="append('*')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">×</button>
+            
+            <!-- Row 3 -->
+            <button onclick="append('4')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">4</button>
+            <button onclick="append('5')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">5</button>
+            <button onclick="append('6')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">6</button>
+            <button onclick="append('-')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">-</button>
+            
+            <!-- Row 4 -->
+            <button onclick="append('1')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">1</button>
+            <button onclick="append('2')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">2</button>
+            <button onclick="append('3')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">3</button>
+            <button onclick="append('+')" class="calc-btn p-6 text-amber-600 bg-white rounded-xl hover:bg-gray-100">+</button>
+            
+            <!-- Row 5 -->
+            <button onclick="append('0')" class="calc-btn p-6 col-span-2 text-gray-700 bg-white rounded-xl hover:bg-gray-100">0</button>
+            <button onclick="append('.')" class="calc-btn p-6 text-gray-700 bg-white rounded-xl hover:bg-gray-100">.</button>
+            <button onclick="requestPayment()" class="calc-btn p-6 bg-amber-500 text-white rounded-xl font-bold shadow-lg shadow-amber-200 hover:bg-amber-600">=</button>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 bg-white text-center">
+            <p class="text-[10px] text-gray-400">Versión Trial - V 4.2.0 - Quedan 0 operaciones gratuitas</p>
+        </div>
+
+        <!-- Modal de Pago (Oculto por defecto) -->
+        <div id="paywall" class="hidden absolute inset-0 bg-white/95 z-50 flex flex-col items-center justify-center p-6 text-center animate-fade-in">
+            <div class="mb-6 text-amber-500">
+                <i class="fas fa-lock text-5xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Resultado Bloqueado!</h2>
+            <p class="text-gray-600 mb-8 text-sm px-4">Has alcanzado el límite de operaciones de la versión gratuita. Suscríbete para desbloquear el motor de cálculo.</p>
+            
+            <div class="space-y-4 w-full">
+                <!-- Plan Básico -->
+                <div class="border-2 border-gray-100 rounded-2xl p-4 flex justify-between items-center hover:border-amber-500 transition-colors cursor-pointer group" onclick="mockPurchase('Básico')">
+                    <div class="text-left">
+                        <h3 class="font-bold text-gray-800">Plan Básico</h3>
+                        <p class="text-xs text-gray-400 italic">Solo sumas y restas simples</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg font-bold text-amber-600">$49.99</span>
+                        <p class="text-[10px] text-gray-400">por cálculo</p>
+                    </div>
+                </div>
+
+                <!-- Plan Estudiante -->
+                <div class="border-2 border-amber-500 bg-amber-50 rounded-2xl p-4 flex justify-between items-center relative overflow-hidden cursor-pointer" onclick="mockPurchase('Estudiante')">
+                    <div class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] px-3 py-1 font-bold rounded-bl-lg uppercase">Popular</div>
+                    <div class="text-left">
+                        <h3 class="font-bold text-gray-800">Plan Académico</h3>
+                        <p class="text-xs text-gray-400 italic">Incluye decimales limitados</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg font-bold text-amber-600">$129.99</span>
+                        <p class="text-[10px] text-gray-400">mensual + IVA</p>
+                    </div>
+                </div>
+
+                <!-- Plan Empresarial -->
+                <div class="border-2 border-gray-100 rounded-2xl p-4 flex justify-between items-center hover:border-amber-500 transition-colors cursor-pointer" onclick="mockPurchase('Empresarial')">
+                    <div class="text-left">
+                        <h3 class="font-bold text-gray-800">Empresarial</h3>
+                        <p class="text-xs text-gray-400 italic">Cero publicidad y botón de "=" extra grande</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-lg font-bold text-amber-600">Contactar</span>
+                        <p class="text-[10px] text-gray-400">para cotización</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closePaywall()" class="mt-8 text-gray-400 text-xs underline uppercase tracking-widest hover:text-gray-600">Seguir siendo pobre y no ver el resultado</button>
+        </div>
+
+        <!-- Notificación de Compra -->
+        <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl transition-all opacity-0 translate-y-10 z-[60] pointer-events-none">
+            Procesando pago con tarjeta...
+        </div>
+    </div>
+
+    <script>
+        let currentDisplay = '0';
+        let operationHistory = '';
+        const displayElement = document.getElementById('display');
+        const historyElement = document.getElementById('history');
+        const paywall = document.getElementById('paywall');
+        const toast = document.getElementById('toast');
+
+        function updateDisplay() {
+            displayElement.innerText = currentDisplay;
+            historyElement.innerText = operationHistory;
+        }
+
+        function append(char) {
+            if (currentDisplay === '0' && char !== '.') {
+                currentDisplay = char;
+            } else {
+                currentDisplay += char;
+            }
+            updateDisplay();
+        }
+
+        function clearCalc() {
+            currentDisplay = '0';
+            operationHistory = '';
+            updateDisplay();
+        }
+
+        function requestPayment() {
+            if (currentDisplay === '0' || currentDisplay === '') return;
+            
+            // Simular un pequeño lag de procesamiento para hacerlo "creíble"
+            displayElement.innerText = "Pensando...";
+            
+            setTimeout(() => {
+                paywall.classList.remove('hidden');
+            }, 800);
+        }
+
+        function closePaywall() {
+            paywall.classList.add('hidden');
+            currentDisplay = '0';
+            displayElement.innerText = "Error: Sub required";
+            displayElement.classList.add('shake-element');
+            setTimeout(() => displayElement.classList.remove('shake-element'), 500);
+        }
+
+        function mockPurchase(plan) {
+            showToast(`Error: Su tarjeta ha sido rechazada para el Plan ${plan}. Fondos insuficientes.`);
+            
+            // El botón de cerrar del modal se vuelve más pequeño o se mueve? Nah, vamos a ser más crueles:
+            const plans = paywall.querySelectorAll('.border-2');
+            plans.forEach(p => p.classList.add('shake-element'));
+            setTimeout(() => {
+                plans.forEach(p => p.classList.remove('shake-element'));
+            }, 500);
+        }
+
+        function showToast(message) {
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'translate-y-10');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-10');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
+```
